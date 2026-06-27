@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Lead Qualification System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0F1A;
+    --panel:#111A2B;
+    --line:#1E2A3D;
+    --text:#EAF0F7;
+    --muted:#7E8CA0;
+    --gold:#C9A75E;
+    --dead:#5A6478;
+    --cold:#4EA1D6;
+    --warm:#E2A23B;
+    --hot:#E1543D;
+    --cat-buyer:#5B84A6;
+    --cat-seller:#B97A4A;
+    --cat-investor:#8B6FB3;
+    --radius:6px;
+    --maxw:1080px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    line-height:1.55;
+    position:relative;
+    overflow-x:hidden;
+    font-size:16px;
+  }
+  .grid-bg{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:48px 48px;
+    opacity:0.28;
+    -webkit-mask-image:radial-gradient(ellipse at center, black 0%, transparent 78%);
+    mask-image:radial-gradient(ellipse at center, black 0%, transparent 78%);
+  }
+  .spine{
+    position:absolute;top:0;bottom:0;left:50%;width:0;
+    border-left:1px dashed var(--line);
+    z-index:0;pointer-events:none;
+  }
+  @media (max-width:720px){ .spine{display:none;} }
+
+  :focus-visible{ outline:2px solid var(--gold); outline-offset:3px; border-radius:2px; }
+
+  .container{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-0.01em;}
+
+  .brand-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.18em;
+    color:var(--muted);text-align:center;margin-bottom:28px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.12em;
+    color:var(--gold);text-transform:uppercase;text-align:center;margin-bottom:18px;
+  }
+
+  .hero{padding:96px 0 76px;text-align:center;}
+  .hero h1{font-size:clamp(30px,5vw,50px);line-height:1.16;margin-bottom:20px;}
+  .hero .lede{font-size:18px;color:var(--muted);max-width:560px;margin:0 auto;}
+
+  .stage{padding:84px 0;position:relative;}
+  .stage-head{text-align:center;max-width:620px;margin:0 auto 52px;}
+  .stage-num{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:0.1em;display:block;margin-bottom:10px;}
+  .stage-head h2{font-size:clamp(23px,3vw,30px);margin-bottom:12px;}
+  .stage-head p{color:var(--muted);font-size:15.5px;}
+
+  .node-dot{
+    width:8px;height:8px;background:var(--gold);margin:0 auto;position:relative;z-index:2;
+    transform:rotate(45deg);box-shadow:0 0 0 7px var(--bg);
+  }
+
+  /* branch connectors */
+  .branch-wrap{position:relative;padding-top:34px;}
+  .branch-line{position:absolute;top:0;height:0;border-top:1px dashed var(--line);}
+  .branch-line.branch-3{left:16.6667%;right:16.6667%;}
+  .branch-line.branch-2{left:25%;right:25%;}
+  .branch-tick{position:absolute;top:0;width:1px;height:34px;background:var(--line);}
+  @media (max-width:720px){
+    .branch-line,.branch-tick{display:none;}
+    .branch-wrap{padding-top:0;}
+  }
+  .branch-row{display:grid;gap:20px;}
+  .branch-row.cols-3{grid-template-columns:repeat(3,1fr);}
+  .branch-row.cols-2{grid-template-columns:repeat(2,1fr);gap:24px;}
+  @media (max-width:720px){
+    .branch-row.cols-3,.branch-row.cols-2{grid-template-columns:1fr;}
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:26px 22px;
+  }
+  .card-icon{width:30px;height:30px;color:var(--text);opacity:0.85;margin-bottom:16px;}
+  .card-icon svg{width:100%;height:100%;}
+  .card h3{font-size:16.5px;margin-bottom:8px;}
+  .card p{color:var(--muted);font-size:14.5px;}
+
+  /* stage 02 category tags */
+  .cat-tag{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 20px;text-align:center;
+  }
+  .cat-tag .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px;}
+  .cat-tag.buyer .dot{background:var(--cat-buyer);}
+  .cat-tag.seller .dot{background:var(--cat-seller);}
+  .cat-tag.investor .dot{background:var(--cat-investor);}
+  .cat-tag h4{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;}
+  .cat-tag p{color:var(--muted);font-size:13.5px;}
+
+  /* stage 03 tabs */
+  .tabs{display:flex;gap:8px;justify-content:center;margin-bottom:40px;flex-wrap:wrap;}
+  .tab-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:0.06em;text-transform:uppercase;
+    padding:10px 22px;border:1px solid var(--line);background:transparent;color:var(--muted);
+    border-radius:var(--radius);cursor:pointer;transition:color .2s,border-color .2s;
+  }
+  .tab-btn.active{color:var(--text);}
+  .tab-btn[data-tab="buyer"].active{color:var(--cat-buyer);border-color:var(--cat-buyer);}
+  .tab-btn[data-tab="seller"].active{color:var(--cat-seller);border-color:var(--cat-seller);}
+  .tab-btn[data-tab="investor"].active{color:var(--cat-investor);border-color:var(--cat-investor);}
+
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .q-list{list-style:none;counter-reset:q;max-width:640px;margin:0 auto 28px;}
+  .q-list li{counter-increment:q;display:flex;gap:16px;padding:13px 0;border-bottom:1px solid var(--line);}
+  .q-list li::before{
+    content:counter(q,decimal-leading-zero);font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;color:var(--muted);flex-shrink:0;width:26px;padding-top:2px;
+  }
+  .q-list b{display:block;font-size:15px;margin-bottom:2px;}
+  .q-list span{color:var(--muted);font-size:14px;}
+
+  .disq-box{
+    max-width:640px;margin:0 auto;border-left:2px solid var(--hot);
+    background:rgba(225,84,61,0.06);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;
+  }
+  .disq-box h5{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--hot);margin-bottom:8px;}
+  .disq-box p{font-size:13.5px;color:var(--muted);margin-bottom:4px;}
+
+  /* stage 04 pre-close */
+  .quote-card{max-width:580px;margin:0 auto;text-align:center;}
+  .quote-card blockquote{font-family:'Space Grotesk',sans-serif;font-size:19px;line-height:1.5;margin-bottom:14px;}
+  .quote-card cite{display:block;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);letter-spacing:0.05em;font-style:normal;margin-bottom:24px;}
+  .quote-card .note{color:var(--muted);font-size:14.5px;max-width:480px;margin:0 auto;}
+
+  /* stage 05 gauge */
+  .gauge-wrap{max-width:740px;margin:0 auto;}
+  .gauge-ticks,.gauge-zones{position:relative;height:18px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);}
+  .gauge-ticks span,.gauge-zones span{position:absolute;transform:translateX(-50%);white-space:nowrap;}
+  .gauge-ticks span:first-child{transform:translateX(0);}
+  .gauge-ticks span:last-child{transform:translateX(-100%);}
+  .gauge-zones span{font-weight:600;}
+  .gauge-track{position:relative;height:14px;border-radius:7px;margin:10px 0 6px;
+    background:linear-gradient(to right,
+      var(--dead) 0%, var(--dead) 27%,
+      var(--cold) 27%, var(--cold) 50%,
+      var(--warm) 50%, var(--warm) 71%,
+      var(--hot) 71%, var(--hot) 100%);
+  }
+  .gauge-marker{
+    position:absolute;top:-10px;left:0%;width:2px;height:34px;background:var(--text);
+    transition:left 1.1s cubic-bezier(.2,.8,.2,1);
+  }
+  .gauge-marker::after{content:'';position:absolute;top:-6px;left:-5px;width:12px;height:12px;background:var(--text);border-radius:50%;}
+  .gauge-marker.animate{left:80%;}
+  .gauge-sample{text-align:center;font-size:14px;color:var(--muted);margin-top:30px;}
+  .gauge-sample b{color:var(--text);}
+
+  /* stage 06 routing */
+  .route-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:30px 26px;height:100%;}
+  .route-card.booked{border-color:rgba(225,84,61,0.35);}
+  .route-card.nurture{border-color:rgba(78,161,214,0.35);}
+  .route-card h3{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:17px;}
+  .route-card.booked h3{color:var(--hot);}
+  .route-card.nurture h3{color:var(--cold);}
+  .route-icon{width:20px;height:20px;flex-shrink:0;}
+  .route-card>p{color:var(--muted);font-size:14px;}
+  .timeline{list-style:none;margin-top:18px;}
+  .timeline li{display:flex;gap:14px;padding:10px 0;font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);}
+  .timeline li:first-child{border-top:none;padding-top:14px;}
+  .timeline li b{color:var(--text);min-width:104px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.03em;padding-top:1px;}
+
+  footer{padding:76px 0 52px;text-align:center;}
+  .closing{font-family:'Space Grotesk',sans-serif;font-size:19px;max-width:580px;margin:0 auto 22px;}
+  .brandmark{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;}
+
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease;}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{transition:none;opacity:1;transform:none;}
+    .gauge-marker{transition:none;}
+  }
+
+  @media (max-width:720px){
+    .hero{padding:64px 0 48px;}
+    .stage{padding:56px 0;}
+    .container{padding:0 18px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg" aria-hidden="true"></div>
+<div class="spine" aria-hidden="true"></div>
+
+<header class="hero">
+  <div class="container">
+    <p class="brand-tag reveal">YOURCORE AI REAL ESTATE</p>
+    <p class="eyebrow reveal">AUTOMATED LEAD QUALIFICATION</p>
+    <h1 class="reveal">Every Lead Is Qualified<br>Before a Human Touches It</h1>
+    <p class="lede reveal">One system takes the inquiry, identifies what the person wants, scores their intent, and books the appointment — automatically.</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- STAGE 01 — INTAKE -->
+  <section class="stage" id="stage-01">
+    <div class="container">
+      <div class="stage-head reveal">
+        <span class="stage-num">STAGE 01</span>
+        <h2>Intake — Three Ways In</h2>
+        <p>Every inquiry enters through one of three channels. All three feed the same qualification engine.</p>
+      </div>
+      <div class="branch-wrap reveal">
+        <div class="branch-line branch-3" aria-hidden="true"></div>
+        <div class="branch-tick" style="left:16.6667%" aria-hidden="true"></div>
+        <div class="branch-tick" style="left:50%" aria-hidden="true"></div>
+        <div class="branch-tick" style="left:83.3333%" aria-hidden="true"></div>
+        <div class="branch-row cols-3">
+          <div class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 4v-4H4V5z"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="12" x2="13" y2="12"/></svg>
+            </div>
+            <h3>WhatsApp Form</h3>
+            <p>A structured form opens inside WhatsApp the moment someone reaches out, capturing the essentials in seconds.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19v1a3 3 0 0 1-3 3h-2"/></svg>
+            </div>
+            <h3>Voice Agent</h3>
+            <p>An AI voice agent answers the call live and runs the full screening conversation in real time.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="11" rx="2"/><line x1="12" y1="8" x2="12" y2="4"/><circle cx="12" cy="3" r="1"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+            </div>
+            <h3>WhatsApp Bot</h3>
+            <p>A conversational bot asks the same screening questions through chat, at any hour, without delay.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="node-dot" aria-hidden="true"></div>
+
+  <!-- STAGE 02 — INTENT -->
+  <section class="stage" id="stage-02">
+    <div class="container">
+      <div class="stage-head reveal">
+        <span class="stage-num">STAGE 02</span>
+        <h2>Intent Detection</h2>
+        <p>Before a single qualifying question is asked, the system identifies what this lead actually wants.</p>
+      </div>
+      <div class="branch-wrap reveal">
+        <div class="branch-line branch-3" aria-hidden="true"></div>
+        <div class="branch-tick" style="left:16.6667%" aria-hidden="true"></div>
+        <div class="branch-tick" style="left:50%" aria-hidden="true"></div>
+        <div class="branch-tick" style="left:83.3333%" aria-hidden="true"></div>
+        <div class="branch-row cols-3">
+          <div class="cat-tag buyer"><h4><span class="dot"></span>Buyer</h4><p>Looking to purchase a property.</p></div>
+          <div class="cat-tag seller"><h4><span class="dot"></span>Seller</h4><p>Looking to list a property.</p></div>
+          <div class="cat-tag investor"><h4><span class="dot"></span>Investor</h4><p>Looking to deploy capital for return.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="node-dot" aria-hidden="true"></div>
+
+  <!-- STAGE 03 — QUALIFICATION -->
+  <section class="stage" id="stage-03">
+    <div class="container">
+      <div class="stage-head reveal">
+        <span class="stage-num">STAGE 03</span>
+        <h2>Qualification</h2>
+        <p>Each path asks a different set of questions, built around what actually predicts a closed deal.</p>
+      </div>
+
+      <div class="tabs reveal">
+        <button class="tab-btn active" data-tab="buyer" style="color:var(--cat-buyer);border-color:var(--cat-buyer);">Buyer</button>
+        <button class="tab-btn" data-tab="seller">Seller</button>
+        <button class="tab-btn" data-tab="investor">Investor</button>
+      </div>
+
+      <div class="tab-panel active" id="buyer">
+        <ul class="q-list">
+          <li><div><b>Motivation</b><span>What is prompting this move right now.</span></div></li>
+          <li><div><b>Location</b><span>Which areas are specifically in play.</span></div></li>
+          <li><div><b>Timeline</b><span>Under one month, one to three months, three to six, or just exploring.</span></div></li>
+          <li><div><b>Budget</b><span>A real number, anchored if the lead hesitates.</span></div></li>
+          <li><div><b>Financing</b><span>Cash, loan pre-approved, or still arranging.</span></div></li>
+          <li><div><b>Active Search</b><span>Whether properties have already been viewed.</span></div></li>
+          <li><div><b>Contingency &amp; Exclusivity</b><span>Selling first. Working with another agent.</span></div></li>
+          <li><div><b>Intent Strength</b><span>Would they move this week if the right property appeared.</span></div></li>
+        </ul>
+        <div class="disq-box">
+          <h5>Disqualifies Instantly</h5>
+          <p>No financing clarity and no timeline.</p>
+          <p>"Just researching" repeated after a recovery attempt.</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="seller">
+        <ul class="q-list">
+          <li><div><b>Motivation &amp; Timeline</b><span>Why selling, and when they want to list.</span></div></li>
+          <li><div><b>Location</b><span>Property location and the primary reason for selling.</span></div></li>
+          <li><div><b>Readiness</b><span>Ready to list immediately if pricing and timing align.</span></div></li>
+          <li><div><b>Price Expectation</b><span>Their number, and how they arrived at it — reframed against market data if it runs high.</span></div></li>
+          <li><div><b>Financials &amp; Condition</b><span>Remaining mortgage balance. Recent repairs or upgrades.</span></div></li>
+          <li><div><b>Urgency</b><span>What happens if it does not sell in ninety days.</span></div></li>
+          <li><div><b>Decision Authority</b><span>Who else needs to agree before listing.</span></div></li>
+        </ul>
+        <div class="disq-box">
+          <h5>Disqualifies Instantly</h5>
+          <p>Price 20–30% above market, with no movement after reframing.</p>
+          <p>No urgency remaining after a recovery attempt.</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="investor">
+        <ul class="q-list">
+          <li><div><b>Strategy &amp; Budget</b><span>Rental income, flip, or appreciation, and the maximum per deal.</span></div></li>
+          <li><div><b>Capital Ready</b><span>What capital is available to deploy right now.</span></div></li>
+          <li><div><b>Target Markets</b><span>Which locations they are actually targeting.</span></div></li>
+          <li><div><b>Return Criteria</b><span>Minimum expected return — ROI, cap rate, or cash on cash.</span></div></li>
+          <li><div><b>Financing</b><span>Cash, traditional loan, hard money, or a 1031 exchange.</span></div></li>
+          <li><div><b>Timeline</b><span>When they intend to close the next deal.</span></div></li>
+          <li><div><b>Track Record</b><span>Deals actually closed in the last twelve months.</span></div></li>
+        </ul>
+        <div class="disq-box">
+          <h5>Disqualifies Instantly</h5>
+          <p>No capital clarity and no timeline.</p>
+          <p>A buy box too vague to act on.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="node-dot" aria-hidden="true"></div>
+
+  <!-- STAGE 04 — PRE-CLOSE -->
+  <section class="stage" id="stage-04">
+    <div class="container">
+      <div class="stage-head reveal">
+        <span class="stage-num">STAGE 04</span>
+        <h2>Pre-Close Check</h2>
+        <p>Before any score is treated as final, the system runs one more check.</p>
+      </div>
+      <div class="quote-card reveal">
+        <blockquote>"Based on what you have shared, this looks actionable."</blockquote>
+        <cite>Run before every booking offer, across all three paths</cite>
+        <p class="note">Agreement moves straight to booking. Hesitation surfaces the real objection first, so nothing lands on a calendar by accident.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="node-dot" aria-hidden="true"></div>
+
+  <!-- STAGE 05 — SCORING -->
+  <section class="stage" id="stage-05">
+    <div class="container">
+      <div class="stage-head reveal">
+        <span class="stage-num">STAGE 05</span>
+        <h2>Scoring</h2>
+        <p>Every answer feeds one score, from one to ten. Bonuses reward urgency and certainty. Penalties flag hesitation and risk.</p>
+      </div>
+      <div class="gauge-wrap reveal">
+        <div class="gauge-ticks">
+          <span style="left:0%">1</span>
+          <span style="left:27%">3.5</span>
+          <span style="left:50%">5.5</span>
+          <span style="left:71%">7.5</span>
+          <span style="left:100%">10</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-marker"></div>
+        </div>
+        <div class="gauge-zones">
+          <span style="left:13.5%;color:var(--dead);">DEAD</span>
+          <span style="left:38.5%;color:var(--cold);">COLD</span>
+          <span style="left:60.5%;color:var(--warm);">WARM</span>
+          <span style="left:85.5%;color:var(--hot);">HOT</span>
+        </div>
+        <p class="gauge-sample">Sample lead — <b>Priya M., Buyer — Score 8.2 — HOT.</b> Financing confirmed, ready this week.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="node-dot" aria-hidden="true"></div>
+
+  <!-- STAGE 06 — ROUTING -->
+  <section class="stage" id="stage-06">
+    <div class="container">
+      <div class="stage-head reveal">
+        <span class="stage-num">STAGE 06</span>
+        <h2>Routing</h2>
+        <p>The score alone decides what happens next. No manual triage required.</p>
+      </div>
+      <div class="branch-wrap reveal">
+        <div class="branch-line branch-2" aria-hidden="true"></div>
+        <div class="branch-tick" style="left:25%" aria-hidden="true"></div>
+        <div class="branch-tick" style="left:75%" aria-hidden="true"></div>
+        <div class="branch-row cols-2">
+
+          <div class="route-card booked">
+            <h3>
+              <svg class="route-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/></svg>
+              Booked Instantly
+            </h3>
+            <p>Hot and warm leads go straight onto the agent's calendar. No back-and-forth required.</p>
+            <ul class="timeline">
+              <li><b>IMMEDIATE</b><span>Appointment is placed directly on the agent's calendar.</span></li>
+              <li><b>SAME MINUTE</b><span>Agent receives the full call/chat transcript and a written analysis of the lead by email.</span></li>
+            </ul>
+          </div>
+
+          <div class="route-card nurture">
+            <h3>
+              <svg class="route-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              Automated Follow-Up
+            </h3>
+            <p>Cold leads and unconfirmed bookings enter a fixed follow-up sequence. Nothing falls through.</p>
+            <ul class="timeline">
+              <li><b>0–24 HOURS</b><span>Three touches by call or WhatsApp.</span></li>
+              <li><b>AFTER 24H</b><span>One phone call if still silent.</span></li>
+              <li><b>STILL NOTHING</b><span>One final email.</span></li>
+              <li><b>NO RESPONSE</b><span>Marked dead. Revisited quarterly only.</span></li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="node-dot" aria-hidden="true"></div>
+
+  <section class="stage" style="padding-top:56px;padding-bottom:48px;">
+    <div class="container">
+      <div style="text-align:center;max-width:560px;margin:0 auto;">
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:clamp(23px,3vw,30px);margin-bottom:16px;">Ready to see it in action?</h2>
+        <p style="color:var(--muted);font-size:15.5px;margin-bottom:32px;">Let's run a live qualification audit on your agency — zero commitment, thirty minutes.</p>
+        <a href="https://cal.com/yourcore.real-estate/30min" style="display:inline-block;padding:14px 36px;background:var(--hot);color:var(--bg);text-decoration:none;border-radius:var(--radius);font-weight:600;font-family:'Space Grotesk',sans-serif;font-size:15px;letter-spacing:-0.01em;transition:opacity .2s;border:none;cursor:pointer;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Book a Call</a>
+      </div>
+    </div>
+  </section>
+
+
+
+<footer>
+  <div class="container">
+    <p class="closing reveal">The result: every inquiry gets a response, every response gets scored, and an agent's time goes only to the leads worth it.</p>
+    <p class="brandmark">REAL ESTATE — LEAD QUALIFICATION SYSTEM</p>
+  </div>
+</footer>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){
+        b.classList.remove('active');
+        b.style.color = '';
+        b.style.borderColor = '';
+      });
+      document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Scroll reveal
+  var reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    reveals.forEach(function(el){ obs.observe(el); });
+
+    var marker = document.querySelector('.gauge-marker');
+    if (marker) {
+      var gaugeObs = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if (entry.isIntersecting) {
+            marker.classList.add('animate');
+            gaugeObs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.4 });
+      gaugeObs.observe(document.querySelector('.gauge-wrap'));
+    }
+  } else {
+    reveals.forEach(function(el){ el.classList.add('visible'); });
+    var m = document.querySelector('.gauge-marker');
+    if (m) m.classList.add('animate');
+  }
+</script>
+
+</body>
+</html>
